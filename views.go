@@ -1,9 +1,10 @@
 package main
 
 import (
-	"strings"
 	"fmt"
+	"strings"
 )
+
 func getFishLog(m model) string {
 	var sb strings.Builder
 	for _, fish := range m.inventory {
@@ -12,6 +13,7 @@ func getFishLog(m model) string {
 	fmt.Fprintf(&sb, "Total Fish: %d\nTotal Weight: %.1flb", len(m.inventory), m.totalWeight)
 	return sb.String()
 }
+
 func (m model) View() string {
 	switch m.state {
 	case StateIdle:
@@ -23,7 +25,7 @@ func (m model) View() string {
 	case StateReeling:
 		return "🎣 Fish on! Don't let it get away!" // I assume we need to trigger the mini game event from here. This probably triggers something in the View method?
 	case StateCaught:
-		return fmt.Sprintf("Caught a %s! %.1flb", m.caughtFish.Name, m.caughtFish.Weight)
+		return fmt.Sprintf("Caught a %s! %.1flb\n\nPress SPACE to continue\nPress l for log\nPress q to quit", m.caughtFish.Name, m.caughtFish.Weight)
 	case StateLog:
 		return getFishLog(m)
 
@@ -32,4 +34,3 @@ func (m model) View() string {
 
 	}
 }
-
