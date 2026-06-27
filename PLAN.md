@@ -81,16 +81,39 @@ Checkpoint: Full game loop with persistent session inventory
 
 ---
 
-## Phase 6: Polish
+## Phase 6a: Polish — Lipgloss Styling
 **Go concepts:** lipgloss styling, constants, more string manipulation
 **Game:** Colors, borders, styled UI
 
 Steps:
 1. Apply lipgloss styles to each view
-2. Add color coding by fish rarity
-3. Animate the waiting indicator with `tea.Tick`
+2. Add color coding by fish rarity (common=white, uncommon=blue, rare=gold)
+3. Add borders and padding to views
 
 Checkpoint: Looks like a real game
+
+---
+
+## Phase 6b: Animation — Harmonica Spring Physics
+**Go concepts:** third-party library integration, tea.Tick frame loop, float64 → display mapping
+**Library:** `github.com/charmbracelet/harmonica`
+**Game:** Spring-physics bobber while waiting, spring-based catch indicator while reeling
+
+Steps:
+1. `go get github.com/charmbracelet/harmonica`
+2. Add spring state to model: `bobberPos, bobberVel float64` and `indicatorPos, indicatorVel float64`
+3. Wire `tea.Tick` in `Init()` to drive animation frames (~60fps)
+4. Handle `tickMsg` in `Update()` — call `spring.Update(pos, vel, target)` each frame, store result
+5. `StateWaiting` view: render bobber position as ASCII water line (bobber moves up/down)
+6. `StateReeling` view: render `[====🎣   ]` indicator whose position is spring-driven toward a random target
+7. SPACE at right moment (indicator in catch zone) = `StateCaught`, miss = fish escapes to `StateIdle`
+
+New Go concepts:
+- `tea.Tick(interval, func) tea.Cmd` — fires message on timer, enables frame loops
+- Spring: `harmonica.NewSpring(harmonica.FPS(60), angularFreq, damping)` — tune feel with two floats
+- Mapping float position to terminal characters (float → int → string index)
+
+Checkpoint: Bobber bobs on water while waiting, spring indicator drives real timing-based catch mini-game
 
 ---
 
