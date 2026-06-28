@@ -4,6 +4,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+const Title = "Crowley's Ridge Fishing Simulator"
+
 type GameState int
 
 const (
@@ -17,7 +19,7 @@ const (
 
 type model struct {
 	state       GameState
-	castLine    int
+	waitPhrase  string
 	caughtFish  Fish
 	inventory   []Fish
 	totalWeight float64
@@ -35,7 +37,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		// show/hide log
-		if msg.String() == "l" {
+		if msg.String() == "l" && (m.state == StateIdle || m.state == StateCaught) {
 			m.state = StateLog
 			return m, nil
 		}
@@ -43,8 +45,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.String() == " " {
 			switch m.state {
 			case StateIdle: // idle, lets cast a line out
-				m.state = StateWaiting
-				return m, waitForBite()
+				m.state = StateCasting
+				return m, castingLine()
 
 			case StateReeling: // reeling in, get the fish
 				m.caughtFish = randomFish()
@@ -53,14 +55,25 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.state = StateCaught
 				return m, nil
 
-			case StateCaught, StateLog:
+			case StateCaught: // fish caught
+				m.state = StateCasting
+				return m, castingLine()
+
+			case StateLog: // log open
 				m.state = StateIdle
 				return m, nil
 			}
 		}
+
+	case castMsg:
+		m.state = StateWaiting
+		m.waitPhrase = randomWaitPhrase()
+		return m, waitForBite()
+
 	case fishBiteMsg:
 		m.state = StateReeling
 		return m, nil
 	}
+
 	return m, nil
 }
