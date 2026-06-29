@@ -9,6 +9,10 @@ import (
 )
 
 var (
+	colName   = lipgloss.NewStyle().Width(16).Bold(true).Background(lipgloss.Color("#2e3d5d"))
+	colWeight = lipgloss.NewStyle().Width(10).PaddingRight(1).Align(lipgloss.Right).Background(lipgloss.Color("#2e3d5d"))
+	colRarity = lipgloss.NewStyle().Width(10).Background(lipgloss.Color("#2e3d5d"))
+
 	castControl    = "Press SPACE to cast"
 	logControl     = "Press l for log"
 	quitControl    = "Press q to quit"
@@ -100,13 +104,27 @@ func randomWaitPhrase() string {
 	return waitingPhrases[rand.Intn(len(waitingPhrases))]
 }
 
+func renderBobber(m model) string {
+	waterStyles := []string{"   ~  ", " ~    ", "   ~~ ", "~  ~~ "}
+	const height = 8
+	bobberLine := int(m.bobberPos * float64(height-1))
+	water := waterStyles[(m.frame/15)%len(waterStyles)]
+	var sb strings.Builder
+	for i := 0; i < height; i++ {
+		switch {
+		case i == bobberLine:
+			fmt.Fprintln(&sb, "  🪱  ")
+		case i < bobberLine:
+			fmt.Fprintln(&sb, "  |  ")
+		default:
+			fmt.Fprintln(&sb, water)
+		}
+	}
+	return sb.String()
+}
+
 func getFishLog(m model) string {
 	var sb strings.Builder
-	var (
-		colName   = lipgloss.NewStyle().Width(16).Bold(true).Background(lipgloss.Color("#2e3d5d"))
-		colWeight = lipgloss.NewStyle().Width(10).PaddingRight(1).Align(lipgloss.Right).Background(lipgloss.Color("#2e3d5d"))
-		colRarity = lipgloss.NewStyle().Width(10).Background(lipgloss.Color("#2e3d5d"))
-	)
 	sb.WriteString(titleStyle.Render("📕 Catch log"))
 	sb.WriteByte('\n')
 	sb.WriteByte('\n')
@@ -127,7 +145,7 @@ func getFishLog(m model) string {
 	sb.WriteString(totalRowStyle.Render(totalRow))
 	sb.WriteByte('\n')
 	sb.WriteByte('\n')
-	sb.WriteString(subStyle.Render(getControls(m)))
+	sb.WriteString(getControls(m))
 	return boxStyle.Render(sb.String())
 }
 
@@ -143,8 +161,19 @@ func getCasting() string {
 }
 
 func getWaiting(m model) string {
-	content := titleStyle.Render("Wait for a bite...") + "\n\n" +
-		subStyle.Render(m.waitPhrase)
+	leftCol := lipgloss.NewStyle().
+		Background(lipgloss.Color("#2e3d5d")).
+		Width(6).
+		Align(lipgloss.Left).
+		Render(renderBobber(m))
+
+	rightCol := lipgloss.NewStyle().
+		Background(lipgloss.Color("#2e3d5d")).
+		Width(30).
+		Align(lipgloss.Left).
+		Render(titleStyle.Render("Wait for a bite...") + "\n\n" + m.waitPhrase)
+
+	content := lipgloss.JoinHorizontal(lipgloss.Top, leftCol, rightCol)
 	return boxStyle.Render(content)
 }
 
@@ -157,7 +186,7 @@ func getReeling() string {
 func getCaught(m model) string {
 	content := titleStyle.Render("Fish caught!") + "\n\n" +
 		rarityStyle(m.caughtFish.Rarity).Render(fmt.Sprintf("🐟 %s %.1flb", m.caughtFish.Name, m.caughtFish.Weight)) + "\n\n" +
-		subStyle.Render(getControls(m))
+		getControls(m)
 	return boxStyle.Render(content)
 }
 

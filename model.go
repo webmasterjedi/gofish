@@ -1,7 +1,11 @@
 package main
 
 import (
+	"math"
+	"time"
+
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/harmonica"
 )
 
 const Title = "Crowley's Ridge Fishing Simulator"
@@ -18,14 +22,29 @@ const (
 )
 
 type model struct {
-	state       GameState
-	waitPhrase  string
-	caughtFish  Fish
-	inventory   []Fish
-	totalWeight float64
+	state        GameState
+	waitPhrase   string
+	caughtFish   Fish
+	inventory    []Fish
+	totalWeight  float64
+	frame        int
+	spring       harmonica.Spring
+	bobberPos    float64
+	bobberVel    float64
+	bobberTarget float64
+	catchPos     float64
+	catchVel     float64
+	catchTarget  float64
+}
+type tickMsg time.Time
+
+func tick() tea.Cmd {
+	return tea.Tick(time.Second/60, func(t time.Time) tea.Msg {
+		return tickMsg(t)
+	})
 }
 
-func (m model) Init() tea.Cmd { return nil }
+func (m model) Init() tea.Cmd { return tick() }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
@@ -73,7 +92,27 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case fishBiteMsg:
 		m.state = StateReeling
 		return m, nil
-	}
 
-	return m, nil
+	case tickMsg:
+		m.frame++
+		switch m.state {
+		case StateWaiting:
+			// advanced bobberPos here
+			m.bobberPos, m.bobberVel = m.spring.Update(m.bobberPos, m.bobberVel, m.bobberTarget)
+			// flip direction
+			if math.Abs(m.bobberPos-m.bobberTarget) < 0.05 {
+				if m.bobberTarget == 1.0 {
+					m.bobberTarget = 0.0
+				} else {
+					m.bobberTarget = 1.0
+				}
+			}
+			return m, tick()
+		case StateReeling:
+			// advance catch spring
+			return m, tick()
+		}
+		return m, tick()
+	}
+	return m, tick()
 }
