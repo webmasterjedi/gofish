@@ -105,11 +105,12 @@ func randomWaitPhrase() string {
 }
 
 func renderBobber(m model) string {
-	waterStyles := []string{"   ~  ", " ~    ", "   ~~ ", "~  ~~ "}
-	const height = 8
+	waterStyles := []string{" ~~~~", "~ ~~~~", "~~~ ~~", "~~~~~ "}
+	const height = 5
 	bobberLine := int(m.bobberPos * float64(height-1))
 	water := waterStyles[(m.frame/15)%len(waterStyles)]
 	var sb strings.Builder
+	fmt.Fprintln(&sb, water)
 	for i := 0; i < height; i++ {
 		switch {
 		case i == bobberLine:
@@ -117,9 +118,10 @@ func renderBobber(m model) string {
 		case i < bobberLine:
 			fmt.Fprintln(&sb, "  |  ")
 		default:
-			fmt.Fprintln(&sb, water)
+			fmt.Fprintln(&sb, "      ")
 		}
 	}
+	fmt.Fprintln(&sb, "______")
 	return sb.String()
 }
 
@@ -164,13 +166,15 @@ func getWaiting(m model) string {
 	leftCol := lipgloss.NewStyle().
 		Background(lipgloss.Color("#2e3d5d")).
 		Width(6).
-		Align(lipgloss.Left).
+		Height(8).
+		Align(lipgloss.Center).
 		Render(renderBobber(m))
 
 	rightCol := lipgloss.NewStyle().
 		Background(lipgloss.Color("#2e3d5d")).
-		Width(30).
-		Align(lipgloss.Left).
+		Width(50).
+		Height(8).
+		Align(lipgloss.Center).
 		Render(titleStyle.Render("Wait for a bite...") + "\n\n" + m.waitPhrase)
 
 	content := lipgloss.JoinHorizontal(lipgloss.Top, leftCol, rightCol)

@@ -9,7 +9,8 @@ import (
 
 func main() {
 	m := model{}
-	m.spring = harmonica.NewSpring(harmonica.FPS(60), 5.0, 5.0)
+	m.spring = harmonica.NewSpring(harmonica.FPS(60), 4.0, 1.4)
+	m.bobberTarget = 1
 	g := tea.NewProgram(m)
 	_, err := g.Run()
 	if err != nil {

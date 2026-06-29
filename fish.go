@@ -38,14 +38,14 @@ func randomFish() Fish {
 
 func castingLine() tea.Cmd {
 	return func() tea.Msg {
-		time.Sleep(2 * time.Second)
+		time.Sleep(1 * time.Second)
 		return castMsg{}
 	}
 }
 
 func waitForBite() tea.Cmd {
 	return func() tea.Msg {
-		duration := time.Duration(2+rand.Intn(5)) * time.Second
+		duration := time.Duration(10+rand.Intn(66)) * time.Second
 		time.Sleep(duration)
 		return fishBiteMsg{}
 	}
